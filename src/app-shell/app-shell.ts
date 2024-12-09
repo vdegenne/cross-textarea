@@ -60,7 +60,18 @@ export class AppShell extends LitElement {
 					rows="12"
 					style="width:calc(100% - 48px);--md-sys-typescale-body-large-size:2rem;--md-sys-typescale-body-large-line-height:2rem;"
 					@keydown=${this.send}
-				></md-filled-text-field>
+				>
+					<md-icon-button
+						slot="trailing-icon"
+						@click=${(event: PointerEvent) => {
+							const target = event.target as HTMLElement;
+							(target.parentElement as HTMLTextAreaElement).value = '';
+							this.send();
+						}}
+					>
+						<md-icon>close</md-icon>
+					</md-icon-button>
+				</md-filled-text-field>
 			</div>
 			<!-- -->`;
 	}

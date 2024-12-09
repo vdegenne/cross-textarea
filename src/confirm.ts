@@ -13,7 +13,7 @@ export function confirm({
 	return function (
 		_target: any,
 		_propertyKey: string,
-		descriptor: PropertyDescriptor
+		descriptor: PropertyDescriptor,
 	) {
 		const originalMethod = descriptor.value;
 		descriptor.value = async function (...args: any[]) {
