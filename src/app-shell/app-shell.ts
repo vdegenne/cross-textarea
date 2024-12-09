@@ -63,10 +63,10 @@ export class AppShell extends LitElement {
 				>
 					<md-icon-button
 						slot="trailing-icon"
-						@click=${(event: PointerEvent) => {
-							const target = event.target as HTMLElement;
-							(target.parentElement as HTMLTextAreaElement).value = '';
+						@click=${() => {
+							this.textfield.value = '';
 							this.send();
+							this.textfield.focus();
 						}}
 					>
 						<md-icon>close</md-icon>
