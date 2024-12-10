@@ -1,3 +1,6 @@
+import toast from 'toastit';
+import {app} from './app-shell/app-shell.js';
+
 export function copyToClipboard(text: string) {
 	navigator.clipboard.writeText(text);
 	// toastit('Copied to clipboard.')
@@ -61,11 +64,73 @@ export function getElementsTree(node: Element): Promise<Element[]> {
 }
 export async function getElementInTree(
 	from: Element,
-	condition: (element: Element) => boolean
+	condition: (element: Element) => boolean,
 ): Promise<Element | undefined> {
 	for (const element of await getElementsTree(from)) {
 		if (condition(element)) {
 			return element;
 		}
 	}
+}
+
+export type AvailableLanguages = 'en-US' | 'ja-JP';
+
+export async function recordVoice(
+	language: AvailableLanguages,
+	inputElement: HTMLInputElement,
+) {
+	// Check for browser compatibility
+	if (!('SpeechRecognition' in window || 'webkitSpeechRecognition' in window)) {
+		throw new Error('Speech recognition is not supported in this browser.');
+	}
+
+	const SpeechRecognition =
+		window.SpeechRecognition || (window as any).webkitSpeechRecognition;
+	const recognition = new SpeechRecognition();
+
+	recognition.lang = language;
+	recognition.interimResults = true;
+	recognition.continuous = true;
+
+	// Handle microphone permission
+	const stream = await navigator.mediaDevices.getUserMedia({audio: true});
+	stream.getTracks().forEach((track) => track.stop()); // Release microphone right after obtaining permission
+
+	// Start listening
+	return new Promise<{stop: () => void}>((resolve, reject) => {
+		let isRecording = true;
+
+		recognition.onresult = (event: SpeechRecognitionEvent) => {
+			const transcript = Array.from(event.results)
+				.map((result) => result[0].transcript)
+				.join('');
+			inputElement.value = transcript; // Update input element value
+		};
+
+		recognition.onerror = (event: ErrorEvent) => {
+			toast('error occured');
+			if (isRecording) {
+				recognition.stop();
+				app.recorder = undefined;
+				reject(event.error);
+			}
+		};
+
+		recognition.onend = () => {
+			toast('ended');
+			isRecording = false;
+			app.recorder = undefined;
+		};
+
+		recognition.start();
+
+		// Provide a function to stop the recorder
+		resolve({
+			stop: () => {
+				if (isRecording) {
+					recognition.stop();
+				}
+			},
+		});
+	});
 }

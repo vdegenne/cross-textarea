@@ -15,6 +15,7 @@ plugins.push(
 		ignoredShadowDoms: ['color-picker', 'color-mode-picker'],
 		debug: true,
 		openStrategy: 'tmux-vim',
+		postExec: 'wlrctl window focus Alacritty',
 	}),
 );
 
@@ -32,6 +33,11 @@ plugins.push(
 		],
 	}),
 );
+
+try {
+	const {default: basicSsl} = await import('@vitejs/plugin-basic-ssl');
+	plugins.push(basicSsl());
+} catch {}
 
 if (process.env.NODE_ENV === 'production') {
 	try {

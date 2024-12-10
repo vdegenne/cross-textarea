@@ -4,3 +4,8 @@
 	display: flex;
 	flex-direction: column;
 }
+
+md-filled-tonal-button:has(#stop-span) {
+	--md-sys-color-secondary-container: var(--md-sys-color-error);
+	--md-sys-color-on-secondary-container: var(--md-sys-color-on-error);
+}

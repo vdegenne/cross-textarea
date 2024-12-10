@@ -5,7 +5,13 @@
 		"moduleResolution": "NodeNext",
 		"useDefineForClassFields": false,
 		"experimentalDecorators": true,
-		"types": ["vite/client", "lit", "lit/decorators.js", "material-shell"]
+		"types": [
+			"vite/client",
+			"lit",
+			"lit/decorators.js",
+			"material-shell",
+			"dom-speech-recognition"
+		]
 	},
 	"include": ["src/**/*.ts"]
 }

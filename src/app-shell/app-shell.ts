@@ -1,8 +1,9 @@
 import {LitElement, html} from 'lit';
-import {customElement, query} from 'lit/decorators.js';
+import {customElement, query, state} from 'lit/decorators.js';
 import {withStyles} from 'lit-with-styles';
 import styles from './app-shell.css?inline';
 import {materialShellLoadingOff} from 'material-shell';
+import {type AvailableLanguages, recordVoice} from '../utils.js';
 
 declare global {
 	interface Window {
@@ -19,7 +20,11 @@ export class AppShell extends LitElement {
 	#sendDebouncer: number;
 	#receiveDebouncer: number;
 
-	@query('#textfield') textfield: HTMLTextAreaElement;
+	@state() recorder:
+		| {language: AvailableLanguages; stop: () => void}
+		| undefined = undefined;
+
+	@query('#textfield') textfield: HTMLInputElement;
 
 	firstUpdated() {
 		materialShellLoadingOff.call(this);
@@ -41,6 +46,7 @@ export class AppShell extends LitElement {
 	}
 
 	receive() {
+		return;
 		clearTimeout(this.#receiveDebouncer);
 		this.#receiveDebouncer = setTimeout(async () => {
 			const {input} = await (await fetch('/api/get')).json();
@@ -51,7 +57,7 @@ export class AppShell extends LitElement {
 
 	render() {
 		return html`<!-- -->
-			<div class="absolute inset-0 flex items-center justify-center">
+			<div class="absolute inset-0 flex flex-col items-center justify-center">
 				<md-filled-text-field
 					autofocus
 					id="textfield"
@@ -72,11 +78,53 @@ export class AppShell extends LitElement {
 						<md-icon>close</md-icon>
 					</md-icon-button>
 				</md-filled-text-field>
+
+				<div class="m-6 flex gap-3">
+					<md-filled-tonal-button
+						?disabled=${this.recorder && this.recorder.language !== 'en-US'}
+						@click=${() => {
+							if (this.recorder && this.recorder.language === 'en-US') {
+								this.stopRecorder();
+							} else {
+								this.speak('en-US');
+							}
+						}}
+					>
+						${this.recorder && this.recorder.language === 'en-US'
+							? html`<span id="stop-span">STOP</span>`
+							: 'Speak English'}
+					</md-filled-tonal-button>
+
+					<md-filled-tonal-button
+						?disabled=${this.recorder && this.recorder.language !== 'ja-JP'}
+						@click=${() => {
+							if (this.recorder && this.recorder.language === 'ja-JP') {
+								this.stopRecorder();
+							} else {
+								this.speak('ja-JP');
+							}
+						}}
+					>
+						${this.recorder && this.recorder.language === 'ja-JP'
+							? html`<span id="stop-span">STOP</span>`
+							: 'Speak Japanese'}
+					</md-filled-tonal-button>
+				</div>
 			</div>
 			<!-- -->`;
 	}
 
-	sendInfo() {}
+	async speak(language: AvailableLanguages) {
+		const {stop} = await recordVoice(language, this.textfield);
+		this.recorder = {language, stop};
+	}
+
+	stopRecorder() {
+		if (this.recorder) {
+			this.recorder.stop();
+			// this.recorder = undefined;
+		}
+	}
 }
 
 export const app = (window.app = new AppShell());
